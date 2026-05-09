@@ -40,9 +40,10 @@ loadLocalEnv();
 const port = Number(process.env.PORT) || 4000;
 const allowedOrigins = (
   process.env.CLIENT_ORIGIN ||
+  process.env.ALLOWED_ORIGINS ||
   process.env.FRONTEND_ORIGIN ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  "http://localhost:3000"
+  "http://localhost:3000,https://ringo-frontend.vercel.app"
 )
   .split(",")
   .map((origin) => origin.trim())
