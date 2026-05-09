@@ -83,9 +83,9 @@ const readJsonBody = async (req) =>
 
 const httpServer = createServer((req, res) => {
   // Set CORS headers for all responses
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
-    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+  const origin = String(req.headers.origin || "").trim();
+  if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes("*"))) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
   }
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -145,27 +145,22 @@ const httpServer = createServer((req, res) => {
 const io = new SocketIOServer(httpServer, {
   cors: {
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      
-      // Check if origin is in allowed origins
-      if (allowedOrigins.includes(origin)) {
+      const normalizedOrigin = String(origin).trim();
+      if (allowedOrigins.includes(normalizedOrigin) || allowedOrigins.includes("*")) {
         return callback(null, true);
       }
-      
-      // Allow localhost for development
-      if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+      if (
+        normalizedOrigin.startsWith("http://localhost:") ||
+        normalizedOrigin.startsWith("http://127.0.0.1:")
+      ) {
         return callback(null, true);
       }
-      
-      // Allow any origin if "*" is in allowed origins
-      if (allowedOrigins.includes("*")) {
-        return callback(null, true);
-      }
-      
-      console.log("CORS blocked origin:", origin, "allowedOrigins:", allowedOrigins);
+      console.log("CORS blocked origin:", normalizedOrigin, "allowedOrigins:", allowedOrigins);
       callback(new Error("Not allowed by CORS"));
     },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Internal-Secret"],
     credentials: true,
   },
 });
