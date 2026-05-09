@@ -46,7 +46,7 @@ const allowedOrigins = (
   "http://localhost:3000,https://ringo-frontend.vercel.app"
 )
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
 const parseCookies = (cookieHeader) =>
@@ -84,6 +84,7 @@ const readJsonBody = async (req) =>
 const httpServer = createServer((req, res) => {
   // Set CORS headers for all responses
   const origin = String(req.headers.origin || "").trim();
+  console.log("REQUEST ORIGIN:", origin, "ALLOWED:", allowedOrigins);
   if (origin && (allowedOrigins.includes(origin) || allowedOrigins.includes("*"))) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
@@ -505,4 +506,7 @@ io.on("connection", (socket) => {
 
 httpServer.listen(port, () => {
   console.log(`> Realtime server ready on http://localhost:${port}`);
+  console.log("STARTUP CONFIG - allowedOrigins:", allowedOrigins);
+  console.log("ENV CLIENT_ORIGIN:", process.env.CLIENT_ORIGIN);
+  console.log("ENV ALLOWED_ORIGINS:", process.env.ALLOWED_ORIGINS);
 });
